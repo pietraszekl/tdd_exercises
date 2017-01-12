@@ -25,8 +25,24 @@ describe('Stockfetch tests', function () {
       done();
     }
     sandbox.stub(fs, 'readFile', function (filename, callback) {
-      calback(new Error('failed'));
+      callback(new Error('failed'));
     })
     stockfetch.readTickersFile('InvalidFile', onError);
+  });
+
+  it('read should invoke processTickers for valid file', function (done) {
+    var rawData = 'GOOG\nAAPL\nORCL\nMSFT';
+    var parsedData = ['GOOG', 'AAPL', 'ORCL', 'MSFT'];
+
+    sandbox.stub(stockfetch, 'parseTickers').withArgs(rawData).returns(parsedData);
+
+    sandbox.stub(stockfetch, 'processTickers', function (data) {
+      expect(data).to.be.eql(parsedData);
+      done();
+    })
+    sandbox.stub(fs, 'readFile', function (fileName, callback) {
+      callback(null, rawData);
+    });
+    stockfetch.readTickersFile('tickers.tx');
   })
 })
