@@ -3,7 +3,7 @@ var linesCount = require('../src/files');
 require('chai').use(require('chai-as-promised'));
 
 describe('test promises', function () {
-  it('should return correct lins count for a valid file', function () {
+  it('should return correct lines count for a valid file', function () {
     var callback = function (count) {
       expect(count).to.be.eql(15);
     }
