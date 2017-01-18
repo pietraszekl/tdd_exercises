@@ -4,6 +4,10 @@ var fs = require('fs');
 var http = require('http');
 var Stockfetch = require('../src/stockfetch');
 
+var data = "Date,Open,High,Low,Close,Volume,Adj Close\n\
+2017-01-17,807.080017,807.140015,800.369995,804.609985,1355800,804.609985\n\
+2017-01-13,807.47998,811.223999,806.690002,807.880005,1090100,807.880005";
+
 describe('Stockfetch tests', function () {
   var stockfetch;
   var sandbox;
@@ -121,4 +125,74 @@ describe('Stockfetch tests', function () {
     sandbox.stub(stockfetch.http, 'get').returns({ on: onStub });
     stockfetch.getPrice('GOOG');
   });
+  it('processResponse should call paresePrice with valid data', function () {
+    var dataFunction;
+    var endFunction;
+
+    var response = {
+      statusCode: 200,
+      on: function (event, handler) {
+        if (event === 'data') {
+          dataFunction = handler;
+        }
+        if (event === 'end') {
+          endFunction = handler;
+        }
+      }
+    };
+    var parsePriceMock = sandbox.mock(stockfetch).expects('parsePrice').withArgs('GOOG', 'some data');
+    stockfetch.processResponse('GOOG', response);
+    dataFunction('some ');
+    dataFunction('data');
+    endFunction();
+
+    parsePriceMock.verify();
+  });
+  it('processResponse should call processError if response failed', function () {
+    var response = {
+      statusCode: 404
+    };
+    var processErrorMock = sandbox.mock(stockfetch).expects('processError').withArgs('GOOG', 404);
+
+    stockfetch.processResponse('GOOG', response);
+    processErrorMock.verify();
+  });
+  it('processResponse should call processError only if response failed', function () {
+    var response = {
+      statusCode: 200,
+      on: function () { }
+    };
+    var processErrorMock = sandbox.mock(stockfetch).expects('processError').never();
+
+    stockfetch.processResponse('GOOG', response);
+    processErrorMock.verify();
+  });
+  it('processHttpError should call processError with error details', function () {
+    var processErrorMock = sandbox.mock(stockfetch).expects('processError').withArgs('GOOG', '...error code ...');
+
+    var error = {
+      code: '...error code ...'
+    };
+    stockfetch.processHttpError('GOOG', error);
+    processErrorMock.verify();
+  });
+  it('parsePrice should update prices', function () {
+    stockfetch.parsePrice('GOOG', data);
+    expect(stockfetch.prices.GOOG).to.be.eql('804.609985');
+  });
+  it('parsePrice should call printReport', function () {
+    var printReportMock = sandbox.mock(stockfetch).expects('printReport');
+    stockfetch.parsePrice('GOOG', data);
+    printReportMock.verify();
+  });
+  it('processError should update errors', function () {
+    stockfetch.processError('GOOG', '...oops...');
+    expect(stockfetch.errors.GOOG).to.be.eql('...oops...');
+  });
+  it('processError should call printReport', function () {
+    var printReportMock = sandbox.mock(stockfetch).expects('printReport');
+
+    stockfetch.processError('GOOG', '...oops...');
+    printReportMock.verify();
+  })
 })

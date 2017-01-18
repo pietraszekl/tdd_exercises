@@ -43,9 +43,36 @@ var Stockfetch = function () {
     this.http.get(url, this.processResponse.bind(this, symbol)).on('error', this.processHttpError.bind(this, symbol));
   };
 
-  this.processResponse = function () { }
-  this.processHttpError = function () { }
+  this.processResponse = function (symbol, response) {
+    var self = this;
+    if (response.statusCode === 200) {
+      var data = '';
+      response.on('data', function (chunk) {
+        data += chunk;
+      });
+      response.on('end', function () {
+        self.parsePrice(symbol, data);
+      });
+    } else {
+      self.processError(symbol, response.statusCode)
+    }
+  }
+  this.processHttpError = function (ticker, error) {
+    this.processError(ticker, error.code);
+  }
 
+  this.parsePrice = function (ticker, data) {
+    var price = data.split('\n')[1].split(',').pop();
+    this.prices[ticker] = price;
+    this.printReport();
+  }
+  this.processError = function (ticker, error) {
+    this.errors[ticker] = error;
+    this.printReport();
+  }
+  this.printReport = function () { }
+  this.prices = {};
+  this.errors = {};
 };
 
 module.exports = Stockfetch;
