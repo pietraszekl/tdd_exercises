@@ -89,5 +89,37 @@ describe('tasks controller tests', function () {
   it('should register getTasks as handler for document ready', function () {
     expect(documentReadyHandler).to.be.eql(controller.getTasks);
   });
+  it('newTask should have empty `name` and `date` on create', function () {
+    expect(controller.newTask.name).to.be.eql('');
+    expect(controller.newTask.date).to.be.eql('');
+  });
+  it('should convert newTask with no data to JSON format', function () {
+    var newTask = controller.convertNewTaskToJSON();
+    expect(newTask.name).to.be.eql('');
+    expect(newTask.day).to.be.NAN;
+    expect(newTask.month).to.be.NAN;
+    expect(newTask.year).to.be.NAN;
+  });
+  it('should conver newTask with data to JSON format', function () {
+    var newTask = { name: 'task a', date: '9/03/2017' }
+    var newTaskJSON = { name: 'task a', day: 9, month: 03, year: 2017 }
+    controller.newTask = newTask;
+    expect(controller.convertNewTaskToJSON()).to.be.eql(newTaskJSON)
+  });
+  it('addTask should call the service', function (done) {
+    controller.updateMessage = function () { };
+    controller.updateError = function () { };
+
+    var convertedTask = controller.convertNewTaskToJSON(controller.newTask);
+
+    tasksServiceMock.add = function (task, success, error) {
+      expect(task).to.be.eql(convertedTask);
+      expect(success).to.be.eql(controller.updateMessage);
+      expect(error).to.be.eql(controller.updateError);
+      done();
+    };
+    controller.addTask();
+  }
+  });
 });
 
