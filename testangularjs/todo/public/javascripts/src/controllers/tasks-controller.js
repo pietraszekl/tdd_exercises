@@ -20,8 +20,8 @@ var TasksController = function (tasksService, $filter, $document) {
     var dateParts = controller.newTask.date.split('/')
     var newTask = {
       name: controller.newTask.name,
-      day: parseInt(dateParts[0]),
-      month: parseInt(dateParts[1]),
+      month: parseInt(dateParts[0]),
+      day: parseInt(dateParts[1]),
       year: parseInt(dateParts[2])
     }
     return newTask
@@ -32,6 +32,13 @@ var TasksController = function (tasksService, $filter, $document) {
       controller.updateMessage,
       controller.updateError);
   };
+  controller.updateMessage = function (message) {
+    controller.message = message;
+    controller.getTasks();
+  }
+  controller.disableAddTask = function () {
+    return !validateTask(controller.convertNewTaskToJSON());
+  }
   $document.ready(controller.getTasks);
 };
 

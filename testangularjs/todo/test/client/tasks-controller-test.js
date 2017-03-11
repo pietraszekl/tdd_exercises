@@ -101,8 +101,8 @@ describe('tasks controller tests', function () {
     expect(newTask.year).to.be.NAN;
   });
   it('should conver newTask with data to JSON format', function () {
-    var newTask = { name: 'task a', date: '9/03/2017' }
-    var newTaskJSON = { name: 'task a', day: 9, month: 03, year: 2017 }
+    var newTask = { name: 'task a', date: '9/3/2017' }
+    var newTaskJSON = { name: 'task a', month: 9, day: 3, year: 2017 }
     controller.newTask = newTask;
     expect(controller.convertNewTaskToJSON()).to.be.eql(newTaskJSON)
   });
@@ -119,7 +119,29 @@ describe('tasks controller tests', function () {
       done();
     };
     controller.addTask();
-  }
+  });
+  it('updateMessage should update message and call getTasks', function (done) {
+    controller.getTasks = function () {
+      done();
+    }
+    controller.updateMessage('good');
+    expect(controller.message).to.be.eql('good');
+  });
+  it('diableAddTask should make good use of validateTask', function () {
+    var newTask = {
+      name: 'task a',
+      date: '6/10/2016'
+    }
+    var originalValidateTask = window.validateTask;
+    window.validateTask = function (task) {
+      expect(task.name).to.be.eql(newTask.name);
+      expect(task.month + '/' + task.day + '/' + task.year).to.be.eql(newTask.date);
+      return true;
+    };
+    controller.newTask = newTask;
+    var resultOfDisableAddTask = controller.disableAddTask();
+    window.validateTask = originalValidateTask;
+    expect(resultOfDisableAddTask).to.be.eql(false);
   });
 });
 
