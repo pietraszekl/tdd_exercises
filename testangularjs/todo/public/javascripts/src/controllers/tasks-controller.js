@@ -39,6 +39,10 @@ var TasksController = function (tasksService, $filter, $document) {
   controller.disableAddTask = function () {
     return !validateTask(controller.convertNewTaskToJSON());
   }
+  controller.deleteTask = function (taskId) {
+    tasksService.delete(taskId, controller.updateMessage, controller.updateError);
+  };
+
   $document.ready(controller.getTasks);
 };
 
