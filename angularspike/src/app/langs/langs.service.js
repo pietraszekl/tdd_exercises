@@ -8,6 +8,15 @@
         return this.http.get('/languages')
           .map(this.extractData)
           .catch(this.returnError);
+      },
+      extractData: function (response) {
+        if (response !== 200) {
+          throw new Error("error getting data, status: " + response.status);
+        }
+        return response.text();
+      },
+      returnError: function (error) {
+        return Rx.Obsrvable.throw(error.message || "error, status: " + error.status);
       }
     });
 })(window.app || (window.app = {}));
